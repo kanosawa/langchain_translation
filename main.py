@@ -39,8 +39,18 @@ examples = [
     {
         "jp": "ありゃ、どうしたの？カイがそんなこと言うなんて珍しいね。",
         "en": "Huh, what's wrong?That's rare coming from you, Kai.",
-        "cn": "咦，怎么了？凯说这样的话倒挺少见的。"
-    }
+        "cn": "哎呀，怎么了？凯你说这种话真是稀奇啊。"
+    },
+    {
+        "jp": "いや、特に意味はないんだけどね。スイリンのそばにいると、安心するから。",
+        "en": "No, nothing in particular.I just feel relaxed when I'm near you, Suirin.",
+        "cn": "没有，特别的意思。只是在睡莲你身边，感觉很安心。"
+    },
+    {
+        "jp": "どうやらラオはこの食材が苦手らしい。確かに少し癖はあるが。",
+        "en": "It seems that Rao doesn't like the ingredients. I can feel something weird.",
+        "cn": "看来劳不喜欢这个食材。确实有点怪味。"
+    },
 ]
 
 prompt = PromptTemplate(
@@ -51,7 +61,7 @@ prompt = PromptTemplate(
 few_shot_prompt = FewShotPromptTemplate(
     examples=examples,
     example_prompt=prompt,
-    prefix="以下の同一の意味を持つ日本語と英語に基づいて、簡体字に翻訳して出力して。ただし、キャラクター名は指定された翻訳を使用すること。",
+    prefix="以下の同一の意味を持つ日本語と英語に基づいて、簡体字に翻訳して出力して。ただし、キャラクター名は指定された翻訳を使用し、日本語が与える印象や感情を再現して。",
     suffix="日本語:{input_jp}\n英語:{input_en}\n簡体字:",
     input_variables=["input_jp", "input_en"],
 )
@@ -61,10 +71,13 @@ chat_prompt = ChatPromptTemplate.from_messages([
     HumanMessagePromptTemplate(prompt=few_shot_prompt)
 ])
 
-llm = ChatOpenAI(openai_api_key=os.environ.get('OPENAI_API_KEY'))
+llm = ChatOpenAI(
+    openai_api_key=os.environ.get('OPENAI_API_KEY'),
+    model="gpt-4"
+)
 
-input_jp = "いや、特に意味はないんだけどね。スイリンのそばにいると、安心するから。"
-input_en = "No, nothing in particular.I just feel relaxed when I'm near you, Suirin."
+input_jp = "どうやらラオはこの食材が苦手らしい。確かに少し癖はあるが。"
+input_en = "It seems that Rao doesn't like the ingredients. I can feel something weird."
 
 formatted_prompt = chat_prompt.format_prompt(
     input_jp=input_jp,
