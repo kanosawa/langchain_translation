@@ -1,6 +1,6 @@
 import os
-from langchain_openai import OpenAI
-from langchain.prompts import FewShotPromptTemplate, SystemMessagePromptTemplate, PromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain.prompts import FewShotPromptTemplate, SystemMessagePromptTemplate, PromptTemplate, ChatPromptTemplate, HumanMessagePromptTemplate
 
 system_message = SystemMessagePromptTemplate.from_template("""
 あなたはアニメの翻訳家です。
@@ -54,18 +54,22 @@ few_shot_prompt = FewShotPromptTemplate(
     prefix="以下の同一の意味を持つ日本語と英語に基づいて、簡体字に翻訳して出力して。ただし、キャラクター名は指定された翻訳を使用すること。",
     suffix="日本語:{input_jp}\n英語:{input_en}\n簡体字:",
     input_variables=["input_jp", "input_en"],
-    partial_variables={"system": system_message.format(role="アシスタント")}
 )
 
-llm = OpenAI(openai_api_key=os.environ.get('OPENAI_API_KEY'))
+chat_prompt = ChatPromptTemplate.from_messages([
+    system_message,
+    HumanMessagePromptTemplate(prompt=few_shot_prompt)
+])
+
+llm = ChatOpenAI(openai_api_key=os.environ.get('OPENAI_API_KEY'))
 
 input_jp = "いや、特に意味はないんだけどね。スイリンのそばにいると、安心するから。"
 input_en = "No, nothing in particular.I just feel relaxed when I'm near you, Suirin."
 
-formatted_prompt = few_shot_prompt.format(
+formatted_prompt = chat_prompt.format_prompt(
     input_jp=input_jp,
     input_en=input_en
 )
 
-result = llm.invoke(formatted_prompt)
-print(result)
+result = llm.invoke(formatted_prompt.to_messages())
+print(result.content)
